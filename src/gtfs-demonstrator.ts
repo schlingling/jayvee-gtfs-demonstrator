@@ -3,11 +3,14 @@ import * as GtfsRealtimeBindings from "gtfs-realtime-bindings";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 
+const PATH_PIPELINE_DB = "resources/gtfs-static-and-rt_pipeline-result.sqlite";
+const PATH_MANUAL_DB = "gtfs-static_manual-import";
+
 export class GtfsDemonstrator {
-  public async validateAlerts(path: string): Promise<[number, number, number]> {
+  public async validateAlerts(pathToRawFile: string, pathToDB: string): Promise<[number, number, number]> {
     const sqlStatement = `SELECT * FROM rt_alert WHERE [entity.id] = ? AND [entity.alert.informed_entity.route_id] = ?`;
-    const db = await this.initDatabase();
-    const feed = this.initFeedMessage(path);
+    const db = await this.initDatabase(pathToDB);
+    const feed = this.initFeedMessage(pathToRawFile);
     let counterEntities = 0;
     const countRows = (await db.get(`SELECT  COUNT(*) count FROM rt_alert`)).count;
     let counterMatches = 0;
@@ -22,10 +25,10 @@ export class GtfsDemonstrator {
     }
     return [counterEntities, countRows, counterMatches];
   }
-  public async validateVehiclePositions(path: string): Promise<[number, number, number]> {
-    const feed = this.initFeedMessage(path);
+  public async validateVehiclePositions(pathToRawFile: string, pathToDB: string): Promise<[number, number, number]> {
+    const feed = this.initFeedMessage(pathToRawFile);
     const sqlStatement = `SELECT * FROM rt_vehicle_position WHERE [entity.id] = ? AND [entity.vehicle_position.vehicle_descriptor.id] = ? AND [entity.vehicle_position.trip.trip_id] = ? AND [entity.vehicle_position.trip.route_id] = ?`;
-    const db = await this.initDatabase();
+    const db = await this.initDatabase(pathToDB);
 
     let counterEntities = 0;
     const countRows = (await db.get(`SELECT  COUNT(*) count FROM rt_vehicle_position`)).count;
@@ -39,11 +42,11 @@ export class GtfsDemonstrator {
     }
     return [counterEntities, countRows, counterMatches];
   }
-  public async validateTripUpdates(path: string): Promise<[number, number, number]> {
+  public async validateTripUpdates(pathToRawFile: string, pathToDB: string): Promise<[number, number, number]> {
     const sqlStatement = `SELECT * FROM rt_trip_update WHERE [entity.id] = ? AND [entity.trip_update.trip.trip_id] = ? AND [entity.trip_update.trip.route_id] = ? AND [entity.trip_update.stop_time_update.stop_sequence] = ?`;
-    const db = await this.initDatabase();
+    const db = await this.initDatabase(pathToDB);
 
-    const feed = this.initFeedMessage(path);
+    const feed = this.initFeedMessage(pathToRawFile);
     let counterEntities = 0;
     const countRows = (await db.get(`SELECT  COUNT(*) count FROM rt_trip_update`)).count;
     let counterMatches = 0;
@@ -64,21 +67,36 @@ export class GtfsDemonstrator {
     return GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(new Uint8Array(file));
   }
 
-  private async initDatabase() {
+  private async initDatabase(path: string) {
     return open({
-      filename: "resources/gtfs-static-and-rt_pipeline-result.sqlite",
+      filename: path,
       driver: sqlite3.Database,
     });
   }
 
-  async validateGtfsRTEntities() {
+  async validateGtfsRT() {
     console.log("------------------started------------------");
-    const tripUpdateResult = await this.validateTripUpdates("resources/brest-metropole-gtfs-rt/bibus-brest-gtfs-rt-trip-update");
-    const alertResult = await this.validateAlerts("resources/brest-metropole-gtfs-rt/bibus-brest-gtfs-rt-alerts");
-    const vehiclePositionsResult = await this.validateVehiclePositions("resources/brest-metropole-gtfs-rt/bibus-brest-gtfs-rt-vehicle-position");
+    const tripUpdateResult = await this.validateTripUpdates("resources/brest-metropole-gtfs-rt/bibus-brest-gtfs-rt-trip-update", PATH_PIPELINE_DB);
+    const alertResult = await this.validateAlerts("resources/brest-metropole-gtfs-rt/bibus-brest-gtfs-rt-alerts", PATH_PIPELINE_DB);
+    const vehiclePositionsResult = await this.validateVehiclePositions("resources/brest-metropole-gtfs-rt/bibus-brest-gtfs-rt-vehicle-position", PATH_PIPELINE_DB);
     console.log("TripUpdate --> #rows in manual import: " + tripUpdateResult[0] + ", #rows in processed table:  " + tripUpdateResult[1] + " matches found: " + tripUpdateResult[2] + " --> " + (tripUpdateResult[2] === tripUpdateResult[1] && tripUpdateResult[2] === tripUpdateResult[0] ? "Validation valid ✅" : "Validation not valid ❌"));
     console.log("Alert --> #rows in manual import: " + alertResult[0] + ", #rows in processed table:  " + alertResult[1] + " matches found: " + alertResult[2] + " --> " + (tripUpdateResult[2] === tripUpdateResult[1] && tripUpdateResult[2] === tripUpdateResult[0] ? " Validation successfull ✅" : " Validation not valid ❌"));
     console.log("VehiclePosition --> #rows in manual import:  " + vehiclePositionsResult[0] + ", #rows in processed table:  " + vehiclePositionsResult[1] + " matches found: " + vehiclePositionsResult[2] + " --> " + (tripUpdateResult[2] === tripUpdateResult[1] && tripUpdateResult[2] === tripUpdateResult[0] ? "Validation successfull ✅" : "Validation not valid ❌"));
+    console.log("------------------finished------------------");
+  }
+
+  validateGtfs() {
+    console.log("------------------started------------------");
+    const sqlStatement = `
+    SELECT * FROM <manual_imported_table>
+    EXCEPT
+    SELECT * FROM <pipeline_created_table>
+    UNION ALL
+    SELECT * FROM <pipeline_created_table>
+    EXCEPT
+    SELECT * FROM <manual_imported_table> 
+    `;
+
     console.log("------------------finished------------------");
   }
 }

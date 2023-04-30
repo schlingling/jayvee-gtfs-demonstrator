@@ -17,6 +17,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "csv-parser": "^3.0.0",
     "sqlite": "^4.1.2"
   }
 }
