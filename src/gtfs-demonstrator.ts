@@ -3,6 +3,7 @@ import * as GtfsRealtimeBindings from "gtfs-realtime-bindings";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import csv from "csv-parser";
+import { exec } from "child_process";
 
 const PATH_PIPELINE_DB = "resources/gtfs-static-and-rt_pipeline-result.sqlite";
 
@@ -116,5 +117,32 @@ export class GtfsDemonstrator {
       console.log(file_name_no_extension + " --> #rows in manual import: " + file.length + ", #rows in processed table:  " + rows.length + ", all rows are matching: " + all_rows_are_matching + " --> " + (all_rows_are_matching ? " valid ✅" : " not valid ❌"));
     }
     console.log("------------------finished validation of GTFS------------------");
+  }
+
+  async archiveGtfsAndGtfsRT(duration: number) {
+    //const command = "jv gtfs-static-and-rt.jv";
+    const command = "echo hello world";
+    const startTime = new Date().getTime();
+
+    const intervalId = setInterval(() => {
+      // Code to be executed at each interval
+      const currentTime = new Date().getTime(); // Get the current time in milliseconds
+      if (currentTime - startTime >= duration) {
+        clearInterval(intervalId); // Stop the interval when the duration has elapsed
+      }
+
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error executing command: ${error}`);
+        }
+        console.log(`Standard output: ${stdout}`);
+        console.log(`Standard error: ${stderr}`);
+      });
+    }, 20000); // Set the interval duration to 20 second in milliseconds
+
+    // Use setTimeout to stop the interval after the duration has elapsed even if the interval is still running
+    setTimeout(() => {
+      clearInterval(intervalId);
+    }, duration);
   }
 }
