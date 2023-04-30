@@ -89,11 +89,17 @@ export class GtfsDemonstrator {
   async validateGtfsRT() {
     console.log("------------------started validation of GTFS-RT------------------");
     const tripUpdateResult = await this.validateTripUpdates("resources/brest-metropole-gtfs-rt/bibus-brest-gtfs-rt-trip-update", PATH_PIPELINE_DB);
+    const all_rows_are_matching_tripUpdateResult = tripUpdateResult[2] === tripUpdateResult[1] && tripUpdateResult[2] === tripUpdateResult[0];
+
     const alertResult = await this.validateAlerts("resources/brest-metropole-gtfs-rt/bibus-brest-gtfs-rt-alerts", PATH_PIPELINE_DB);
+    const all_rows_are_matching_alertResult = alertResult[2] === alertResult[1] && alertResult[2] === alertResult[0];
+
     const vehiclePositionsResult = await this.validateVehiclePositions("resources/brest-metropole-gtfs-rt/bibus-brest-gtfs-rt-vehicle-position", PATH_PIPELINE_DB);
-    console.log("TripUpdate --> #rows in manual import: " + tripUpdateResult[0] + ", #rows in processed table:  " + tripUpdateResult[1] + ", matches found: " + tripUpdateResult[2] + " --> " + (tripUpdateResult[2] === tripUpdateResult[1] && tripUpdateResult[2] === tripUpdateResult[0] ? "Validation valid ✅" : "Validation not valid ❌"));
-    console.log("Alert --> #rows in manual import: " + alertResult[0] + ", #rows in processed table:  " + alertResult[1] + ", matches found: " + alertResult[2] + " --> " + (tripUpdateResult[2] === tripUpdateResult[1] && tripUpdateResult[2] === tripUpdateResult[0] ? " Validation successfull ✅" : " Validation not valid ❌"));
-    console.log("VehiclePosition --> #rows in manual import:  " + vehiclePositionsResult[0] + ", #rows in processed table:  " + vehiclePositionsResult[1] + ", matches found: " + vehiclePositionsResult[2] + " --> " + (tripUpdateResult[2] === tripUpdateResult[1] && tripUpdateResult[2] === tripUpdateResult[0] ? "Validation successfull ✅" : "Validation not valid ❌"));
+    const all_rows_are_matching_vehiclePositionsResult = vehiclePositionsResult[2] === vehiclePositionsResult[1] && vehiclePositionsResult[2] === vehiclePositionsResult[0];
+
+    console.log("TripUpdate --> #rows in manual import: " + tripUpdateResult[0] + ", #rows in processed table:  " + tripUpdateResult[1] + ", all rows are matching: " + all_rows_are_matching_tripUpdateResult + " --> " + (all_rows_are_matching_tripUpdateResult ? " valid ✅" : " not valid ❌"));
+    console.log("Alert --> #rows in manual import: " + alertResult[0] + ", #rows in processed table:  " + alertResult[1] + ", all rows are matching: " + all_rows_are_matching_alertResult + " --> " + (all_rows_are_matching_alertResult ? " valid ✅" : "  not valid ❌"));
+    console.log("VehiclePosition --> #rows in manual import:  " + vehiclePositionsResult[0] + ", #rows in processed table:  " + vehiclePositionsResult[1] + ", all rows are matching: " + all_rows_are_matching_vehiclePositionsResult + " --> " + (all_rows_are_matching_vehiclePositionsResult ? " valid ✅" : " not valid ❌"));
     console.log("------------------finished validation of GTFS-RT------------------");
   }
 
@@ -107,7 +113,7 @@ export class GtfsDemonstrator {
       const sqlStatement = "SELECT * FROM static_" + file_name_no_extension;
       const rows = await db.all(sqlStatement);
       const all_rows_are_matching = JSON.stringify(file) === JSON.stringify(rows);
-      console.log(file_name_no_extension + " --> #rows in manual import: " + file.length + ", #rows in processed table:  " + rows.length + ", all rows are matching: " + all_rows_are_matching + " --> " + (all_rows_are_matching ? "Validation valid ✅" : "Validation not valid ❌"));
+      console.log(file_name_no_extension + " --> #rows in manual import: " + file.length + ", #rows in processed table:  " + rows.length + ", all rows are matching: " + all_rows_are_matching + " --> " + (all_rows_are_matching ? " valid ✅" : " not valid ❌"));
     }
     console.log("------------------finished validation of GTFS------------------");
   }
