@@ -108,7 +108,7 @@ export class GtfsDemonstrator {
       const sqlStatement = "SELECT * FROM static_" + file_name_no_extension;
       const rows = await db.all(sqlStatement);
       const all_rows_are_matching = JSON.stringify(file) === JSON.stringify(rows);
-      console.log(file_name_no_extension + " --> #rows in manual import: " + file.length + ", #rows in processed table:  " + rows.length + ", all rows are matching: " + all_rows_are_matching + +" --> " + (all_rows_are_matching ? "Validation valid ✅" : "Validation not valid ❌"));
+      console.log(file_name_no_extension + " --> #rows in manual import: " + file.length + ", #rows in processed table:  " + rows.length + ", all rows are matching: " + all_rows_are_matching + " --> " + (all_rows_are_matching ? "Validation valid ✅" : "Validation not valid ❌"));
     }
     console.log("------------------finished validation of GTFS------------------");
   }
