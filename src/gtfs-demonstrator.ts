@@ -3,7 +3,7 @@ import * as GtfsRealtimeBindings from "gtfs-realtime-bindings";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 
-export class GtfsRTValidator {
+export class GtfsDemonstrator {
   public async validateAlerts(path: string): Promise<[number, number, number]> {
     const sqlStatement = `SELECT * FROM rt_alert WHERE [entity.id] = ? AND [entity.alert.informed_entity.route_id] = ?`;
     const db = await this.initDatabase();

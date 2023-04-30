@@ -1,4 +1,4 @@
-import { GtfsRTValidator } from "./gtfs-demonstrator";
+import { GtfsDemonstrator } from "./gtfs-demonstrator";
 
-const validator = new GtfsRTValidator();
+const validator = new GtfsDemonstrator();
 validator.validateGtfsRTEntities();
