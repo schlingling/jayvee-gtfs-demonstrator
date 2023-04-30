@@ -66,16 +66,16 @@ export class GtfsDemonstrator {
 
   private async initDatabase() {
     return open({
-      filename: "resources/gtfs-static-and-rt.sqlite",
+      filename: "resources/gtfs-static-and-rt_pipeline-result.sqlite",
       driver: sqlite3.Database,
     });
   }
 
   async validateGtfsRTEntities() {
     console.log("------------------started------------------");
-    const tripUpdateResult = await this.validateTripUpdates("resources/gtfs-rt-brest-metropole/bibus-brest-gtfs-rt-trip-update");
-    const alertResult = await this.validateAlerts("resources/gtfs-rt-brest-metropole/bibus-brest-gtfs-rt-alerts");
-    const vehiclePositionsResult = await this.validateVehiclePositions("resources/gtfs-rt-brest-metropole/bibus-brest-gtfs-rt-vehicle-position");
+    const tripUpdateResult = await this.validateTripUpdates("resources/brest-metropole-gtfs-rt/bibus-brest-gtfs-rt-trip-update");
+    const alertResult = await this.validateAlerts("resources/brest-metropole-gtfs-rt/bibus-brest-gtfs-rt-alerts");
+    const vehiclePositionsResult = await this.validateVehiclePositions("resources/brest-metropole-gtfs-rt/bibus-brest-gtfs-rt-vehicle-position");
     console.log("TripUpdate --> #rows in manual import: " + tripUpdateResult[0] + ", #rows in processed table:  " + tripUpdateResult[1] + " matches found: " + tripUpdateResult[2] + " --> " + (tripUpdateResult[2] === tripUpdateResult[1] && tripUpdateResult[2] === tripUpdateResult[0] ? "Validation valid ✅" : "Validation not valid ❌"));
     console.log("Alert --> #rows in manual import: " + alertResult[0] + ", #rows in processed table:  " + alertResult[1] + " matches found: " + alertResult[2] + " --> " + (tripUpdateResult[2] === tripUpdateResult[1] && tripUpdateResult[2] === tripUpdateResult[0] ? " Validation successfull ✅" : " Validation not valid ❌"));
     console.log("VehiclePosition --> #rows in manual import:  " + vehiclePositionsResult[0] + ", #rows in processed table:  " + vehiclePositionsResult[1] + " matches found: " + vehiclePositionsResult[2] + " --> " + (tripUpdateResult[2] === tripUpdateResult[1] && tripUpdateResult[2] === tripUpdateResult[0] ? "Validation successfull ✅" : "Validation not valid ❌"));

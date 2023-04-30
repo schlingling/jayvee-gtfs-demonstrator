@@ -1,3 +1,0 @@
-agency_id,agency_name,agency_url,agency_timezone,agency_lang,agency_phone,agency_fare_url,agency_email
-5,Bibus,http://www.bibus.fr,Europe/Paris,FR,02 98 80 30 30,,
-6,Bibus TAD,https://www.bibus.fr/fr/se-deplacer/nos-modes-transport/transport-a-demande,Europe/Paris,FR,02 98 34 42 22,,

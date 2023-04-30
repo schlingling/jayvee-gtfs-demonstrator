@@ -1,0 +1,2 @@
+feed_publisher_name,feed_publisher_url,feed_lang,feed_start_date,feed_end_date,feed_version,feed_contact_email,feed_contact_url
+RATP Dev,https://www.ratpdev.com,FR,20230426,20230521,2023-04-26_12:44:09,,
