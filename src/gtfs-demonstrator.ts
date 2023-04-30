@@ -5,7 +5,6 @@ import { open } from "sqlite";
 import csv from "csv-parser";
 
 const PATH_PIPELINE_DB = "resources/gtfs-static-and-rt_pipeline-result.sqlite";
-const PATH_MANUAL_DB = "gtfs-static_manual-import";
 
 export class GtfsDemonstrator {
   public async validateAlerts(pathToRawFile: string, pathToDB: string): Promise<[number, number, number]> {
