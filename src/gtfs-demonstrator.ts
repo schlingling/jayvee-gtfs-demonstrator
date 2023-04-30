@@ -137,8 +137,24 @@ export class GtfsDemonstrator {
         }
         console.log(`Standard output: ${stdout}`);
         console.log(`Standard error: ${stderr}`);
+        if (!fs.existsSync("logs")) {
+          fs.mkdirSync("logs");
+        }
+        fs.writeFileSync("logs/gtfsstaticandrt-" + startTime + "-" + currentTime + ".txt", stdout);
+        const formatter = new Intl.DateTimeFormat("de-DE", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+
+        const fileSize = fs.statSync("resources/gtfs-static-and-rt_pipeline-result.sqlite").size;
+        fs.appendFileSync("logs/gtfsstaticandrt-sizebytime-" + startTime + ".txt", formatter.format(currentTime).replace(" ", "") + "," + fileSize + "\n");
       });
-    }, 20000); // Set the interval duration to 20 second in milliseconds
+    }, 2000); // Set the interval duration to 20 second in milliseconds
 
     // Use setTimeout to stop the interval after the duration has elapsed even if the interval is still running
     setTimeout(() => {
