@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as GtfsRealtimeBindings from "gtfs-realtime-bindings";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
+import csv from "csv-parser";
 
 const PATH_PIPELINE_DB = "resources/gtfs-static-and-rt_pipeline-result.sqlite";
 const PATH_MANUAL_DB = "gtfs-static_manual-import";
@@ -74,29 +75,41 @@ export class GtfsDemonstrator {
     });
   }
 
+  private async readCSVFile(filePath: string): Promise<object[]> {
+    const results: object[] = [];
+
+    return new Promise((resolve, reject) => {
+      fs.createReadStream(filePath)
+        .pipe(csv())
+        .on("data", (data) => results.push(data))
+        .on("end", () => resolve(results))
+        .on("error", (error) => reject(error));
+    });
+  }
+
   async validateGtfsRT() {
-    console.log("------------------started------------------");
+    console.log("------------------started validation of GTFS-RT------------------");
     const tripUpdateResult = await this.validateTripUpdates("resources/brest-metropole-gtfs-rt/bibus-brest-gtfs-rt-trip-update", PATH_PIPELINE_DB);
     const alertResult = await this.validateAlerts("resources/brest-metropole-gtfs-rt/bibus-brest-gtfs-rt-alerts", PATH_PIPELINE_DB);
     const vehiclePositionsResult = await this.validateVehiclePositions("resources/brest-metropole-gtfs-rt/bibus-brest-gtfs-rt-vehicle-position", PATH_PIPELINE_DB);
-    console.log("TripUpdate --> #rows in manual import: " + tripUpdateResult[0] + ", #rows in processed table:  " + tripUpdateResult[1] + " matches found: " + tripUpdateResult[2] + " --> " + (tripUpdateResult[2] === tripUpdateResult[1] && tripUpdateResult[2] === tripUpdateResult[0] ? "Validation valid ✅" : "Validation not valid ❌"));
-    console.log("Alert --> #rows in manual import: " + alertResult[0] + ", #rows in processed table:  " + alertResult[1] + " matches found: " + alertResult[2] + " --> " + (tripUpdateResult[2] === tripUpdateResult[1] && tripUpdateResult[2] === tripUpdateResult[0] ? " Validation successfull ✅" : " Validation not valid ❌"));
-    console.log("VehiclePosition --> #rows in manual import:  " + vehiclePositionsResult[0] + ", #rows in processed table:  " + vehiclePositionsResult[1] + " matches found: " + vehiclePositionsResult[2] + " --> " + (tripUpdateResult[2] === tripUpdateResult[1] && tripUpdateResult[2] === tripUpdateResult[0] ? "Validation successfull ✅" : "Validation not valid ❌"));
-    console.log("------------------finished------------------");
+    console.log("TripUpdate --> #rows in manual import: " + tripUpdateResult[0] + ", #rows in processed table:  " + tripUpdateResult[1] + ", matches found: " + tripUpdateResult[2] + " --> " + (tripUpdateResult[2] === tripUpdateResult[1] && tripUpdateResult[2] === tripUpdateResult[0] ? "Validation valid ✅" : "Validation not valid ❌"));
+    console.log("Alert --> #rows in manual import: " + alertResult[0] + ", #rows in processed table:  " + alertResult[1] + ", matches found: " + alertResult[2] + " --> " + (tripUpdateResult[2] === tripUpdateResult[1] && tripUpdateResult[2] === tripUpdateResult[0] ? " Validation successfull ✅" : " Validation not valid ❌"));
+    console.log("VehiclePosition --> #rows in manual import:  " + vehiclePositionsResult[0] + ", #rows in processed table:  " + vehiclePositionsResult[1] + ", matches found: " + vehiclePositionsResult[2] + " --> " + (tripUpdateResult[2] === tripUpdateResult[1] && tripUpdateResult[2] === tripUpdateResult[0] ? "Validation successfull ✅" : "Validation not valid ❌"));
+    console.log("------------------finished validation of GTFS-RT------------------");
   }
 
-  validateGtfs() {
-    console.log("------------------started------------------");
-    const sqlStatement = `
-    SELECT * FROM <manual_imported_table>
-    EXCEPT
-    SELECT * FROM <pipeline_created_table>
-    UNION ALL
-    SELECT * FROM <pipeline_created_table>
-    EXCEPT
-    SELECT * FROM <manual_imported_table> 
-    `;
-
-    console.log("------------------finished------------------");
+  async validateGtfs() {
+    console.log("------------------started validation of GTFS------------------");
+    const db = await this.initDatabase(PATH_PIPELINE_DB);
+    const files = await fs.promises.readdir("resources/brest-metropole-gtfs/gtfs");
+    for (const filename of files) {
+      const file = await this.readCSVFile("resources/brest-metropole-gtfs/gtfs/" + filename);
+      const file_name_no_extension = filename.split(".")[0];
+      const sqlStatement = "SELECT * FROM static_" + file_name_no_extension;
+      const rows = await db.all(sqlStatement);
+      const all_rows_are_matching = JSON.stringify(file) === JSON.stringify(rows);
+      console.log(file_name_no_extension + " --> #rows in manual import: " + file.length + ", #rows in processed table:  " + rows.length + ", all rows are matching: " + all_rows_are_matching + +" --> " + (all_rows_are_matching ? "Validation valid ✅" : "Validation not valid ❌"));
+    }
+    console.log("------------------finished validation of GTFS------------------");
   }
 }
