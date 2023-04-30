@@ -119,7 +119,7 @@ export class GtfsDemonstrator {
     console.log("------------------finished validation of GTFS------------------");
   }
 
-  async archiveGtfsAndGtfsRT(duration: number) {
+  async archiveGtfsAndGtfsRT(duration: number, interval: number) {
     //const command = "jv gtfs-static-and-rt.jv";
     const command = "echo hello world";
     const startTime = new Date().getTime();
@@ -154,8 +154,7 @@ export class GtfsDemonstrator {
         const fileSize = fs.statSync("resources/gtfs-static-and-rt_pipeline-result.sqlite").size;
         fs.appendFileSync("logs/gtfsstaticandrt-sizebytime-" + startTime + ".txt", formatter.format(currentTime).replace(" ", "") + "," + fileSize + "\n");
       });
-    }, 2000); // Set the interval duration to 20 second in milliseconds
-
+    }, interval); // Set the interval duration
     // Use setTimeout to stop the interval after the duration has elapsed even if the interval is still running
     setTimeout(() => {
       clearInterval(intervalId);
