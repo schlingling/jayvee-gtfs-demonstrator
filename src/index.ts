@@ -1,5 +1,6 @@
 import { GtfsDemonstrator } from "./gtfs-demonstrator";
 
 const validator = new GtfsDemonstrator();
-//validator.validateGtfs().then(() => validator.validateGtfsRT());
-validator.archiveGtfsAndGtfsRT(100000, 2000);
+validator.validateGtfs().then(() => validator.validateGtfsRT());
+//validator.archiveGtfsAndGtfsRT(100000, 2000);
+//validator.printTable();

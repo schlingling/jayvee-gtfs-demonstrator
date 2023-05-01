@@ -88,6 +88,7 @@ export class GtfsDemonstrator {
   }
 
   async validateGtfsRT() {
+    console.log("\n\n");
     console.log("------------------started validation of GTFS-RT------------------");
     const tripUpdateResult = await this.validateTripUpdates("resources/brest-metropole-gtfs-rt/bibus-brest-gtfs-rt-trip-update", PATH_PIPELINE_DB);
     const all_rows_are_matching_tripUpdateResult = tripUpdateResult[2] === tripUpdateResult[1] && tripUpdateResult[2] === tripUpdateResult[0];
@@ -98,25 +99,43 @@ export class GtfsDemonstrator {
     const vehiclePositionsResult = await this.validateVehiclePositions("resources/brest-metropole-gtfs-rt/bibus-brest-gtfs-rt-vehicle-position", PATH_PIPELINE_DB);
     const all_rows_are_matching_vehiclePositionsResult = vehiclePositionsResult[2] === vehiclePositionsResult[1] && vehiclePositionsResult[2] === vehiclePositionsResult[0];
 
-    console.log("TripUpdate --> #rows in manual import: " + tripUpdateResult[0] + ", #rows in processed table:  " + tripUpdateResult[1] + ", all rows are matching: " + all_rows_are_matching_tripUpdateResult + " --> " + (all_rows_are_matching_tripUpdateResult ? " valid ✅" : " not valid ❌"));
-    console.log("Alert --> #rows in manual import: " + alertResult[0] + ", #rows in processed table:  " + alertResult[1] + ", all rows are matching: " + all_rows_are_matching_alertResult + " --> " + (all_rows_are_matching_alertResult ? " valid ✅" : "  not valid ❌"));
-    console.log("VehiclePosition --> #rows in manual import:  " + vehiclePositionsResult[0] + ", #rows in processed table:  " + vehiclePositionsResult[1] + ", all rows are matching: " + all_rows_are_matching_vehiclePositionsResult + " --> " + (all_rows_are_matching_vehiclePositionsResult ? " valid ✅" : " not valid ❌"));
-    console.log("------------------finished validation of GTFS-RT------------------");
+    const table = [
+      { entity: "trip_update", "#rows_src": tripUpdateResult[0], "#rows_sink": tripUpdateResult[0], valid: all_rows_are_matching_tripUpdateResult },
+      { entity: "alert", "#rows_src": alertResult[0], "#rows_sink": alertResult[0], valid: all_rows_are_matching_alertResult },
+      { entity: "vehicle", "#rows_src": vehiclePositionsResult[0], "#rows_sink": vehiclePositionsResult[0], valid: all_rows_are_matching_vehiclePositionsResult },
+    ];
+    console.table(table);
+    console.log("------------------finished validation of GTFS-RT-----------------");
+    console.log("\n\n");
   }
 
   async validateGtfs() {
+    console.log("\n\n");
     console.log("------------------started validation of GTFS------------------");
     const db = await this.initDatabase(PATH_PIPELINE_DB);
     const files = await fs.promises.readdir("resources/brest-metropole-gtfs/gtfs");
+    const table = [];
     for (const filename of files) {
       const file = await this.readCSVFile("resources/brest-metropole-gtfs/gtfs/" + filename);
       const file_name_no_extension = filename.split(".")[0];
       const sqlStatement = "SELECT * FROM static_" + file_name_no_extension;
       const rows = await db.all(sqlStatement);
       const all_rows_are_matching = JSON.stringify(file) === JSON.stringify(rows);
-      console.log(file_name_no_extension + " --> #rows in manual import: " + file.length + ", #rows in processed table:  " + rows.length + ", all rows are matching: " + all_rows_are_matching + " --> " + (all_rows_are_matching ? " valid ✅" : " not valid ❌"));
+      const outputRow = { dimension: file_name_no_extension, "#rows_src": file.length, "#rows_sink": rows.length, valid: all_rows_are_matching };
+      table.push(outputRow);
     }
+    console.table(table);
     console.log("------------------finished validation of GTFS------------------");
+    console.log("\n\n");
+  }
+
+  printTable() {
+    const table = [
+      { entity: "TripUpdate", "#rows_manual_import": 1, "#rows_sink": 2, valid: true },
+      { entity: "TripUpdate", "#rows_manual_import": 1, "#rows_sink": 2, valid: true },
+      { entity: "TripUpdate", "#rows_manual_import": 1, "#rows_sink": 2, valid: true },
+    ];
+    console.table(table, ["entity", "#rows_manual_import", "#rows_sink", "valid"]);
   }
 
   async archiveGtfsAndGtfsRT(duration: number, interval: number) {
